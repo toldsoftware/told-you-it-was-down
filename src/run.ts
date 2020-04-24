@@ -39,11 +39,13 @@ const tryFetch = async (name: string, url: string, timeout = TIMEOUT) => {
     const timeStart = process.hrtime();
 
     try {
-        await fetch(url, { timeout })
-
+        const response = await fetch(url, { timeout });
         const timeDeltaMs = getTimeSinceMs(timeStart);
         const message = `ms=${(timeDeltaMs + '').padStart(6, ' ')} \t${name} \t${url}`;
-        if (timeDeltaMs > TIME_WARN) {
+
+        if (!response.ok) {
+            logError(`ERROR \t${message} \t${response.status} \t${response.statusText}`);
+        } else if (timeDeltaMs > TIME_WARN) {
             logWarning(message);
         } else {
             logInfo(message);
