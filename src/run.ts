@@ -7,8 +7,8 @@ export const fs = {
 };
 
 const TIMEOUT = 10000;
-const TIME_WARN = 500;
-const KBPS_WARN = 1000000;
+const TIME_WARN = 1000;
+const KBPS_WARN = 1000;
 const TICK_TIME = 1000;
 const SETTINGS = { outDir: `../reports` };
 
@@ -17,9 +17,11 @@ const appendToFile = async (text: string) => {
     fs.appendFile(path, text);
 };
 
-const logInfo = async (message: string) => {
+const logInfo = async (message: string, alwaysReport: boolean) => {
     console.log(message);
-    // appendToFile(`${new Date().toISOString()} \tINFO    \t${message}\n`);
+    if (alwaysReport) {
+        appendToFile(`${new Date().toISOString()} \tINFO    \t${message}\n`);
+    }
 };
 const logWarning = async (message: string) => {
     console.warn(message);
@@ -37,7 +39,7 @@ const getTimeSinceMs = (timeStart: number[]) => {
     return timeDeltaMs | 0;
 };
 
-const tryFetch = async (name: string, url: string, timeout = TIMEOUT) => {
+const tryFetch = async (name: string, url: string, alwaysReport: boolean, timeout = TIMEOUT) => {
     const timeStart = process.hrtime();
 
     try {
@@ -54,7 +56,7 @@ const tryFetch = async (name: string, url: string, timeout = TIMEOUT) => {
         } else if (timeDeltaMs > TIME_WARN && kbps < KBPS_WARN) {
             logWarning(message);
         } else {
-            logInfo(message);
+            logInfo(message, alwaysReport);
         }
     } catch (err) {
         const timeDeltaMs = getTimeSinceMs(timeStart);
@@ -64,7 +66,12 @@ const tryFetch = async (name: string, url: string, timeout = TIMEOUT) => {
 };
 
 const calls = [
-    { name: 'GoogleFavIcon', url: 'http://www.google.com/images/google_favicon_128.png' },
+    { name: 'GoogleFavIcon', url: 'http://www.google.com/images/google_favicon_128.png', alwaysReport: false },
+    { name: 'Bing__FavIcon', url: 'http://www.bing.com/s/a/bing_p.ico' },
+    { name: 'AmazonFavIcon', url: 'https://www.amazon.com/favicon.ico' },
+    { name: 'Apple_FavIcon', url: 'https://www.apple.com/favicon.ico' },
+    { name: 'WIFI__FavIcon', url: 'http://192.168.1.1/0.1/gui/images/faviconNone.ico' },
+    { name: 'GoogleFavIcon', url: 'http://www.google.com/images/google_favicon_128.png', alwaysReport: false },
     { name: 'Bing__FavIcon', url: 'http://www.bing.com/s/a/bing_p.ico' },
     { name: 'AmazonFavIcon', url: 'https://www.amazon.com/favicon.ico' },
     { name: 'Apple_FavIcon', url: 'https://www.apple.com/favicon.ico' },
@@ -77,7 +84,7 @@ const largeCalls = [
     { name: 'AppleScriptLG', url: 'https://www.apple.com/metrics/ac-analytics/2.9.0/scripts/ac-analytics.js' },
     { name: 'Azure_ImageLG', url: 'https://azurecomcdn.azureedge.net/cvt-7e63ee798fb5c57c26a10e5149d1055e6600c12efc783ef793b34b8d06646c40/images/page/home/customer-tabs/cincinnati-childrens-desktop.jpg' },
     { name: 'GoogleImageLG', url: 'https://ssl.gstatic.com/gb/images/p1_6269e604.png' },
-    { name: 'YoutubeScript', url: 'https://www.youtube.com/yts/jsbin/desktop_polymer_inlined_html_polymer_flags_v2-vflGtoGN1/desktop_polymer_inlined_html_polymer_flags_v2.js' },
+    { name: 'YoutubeScript', url: 'https://www.youtube.com/yts/jsbin/desktop_polymer_inlined_html_polymer_flags_v2-vflGtoGN1/desktop_polymer_inlined_html_polymer_flags_v2.js', alwaysReport: true },
 ];
 
 const allCalls = largeCalls.flatMap(x => [x, ...calls]);
@@ -86,7 +93,7 @@ const loop = async (i: number) => {
     console.log(`${new Date().toISOString()}`);
 
     const call = allCalls[i % allCalls.length];
-    await tryFetch(call.name, call.url);
+    await tryFetch(call.name, call.url, call.alwaysReport ?? false);
 };
 
 export const run = async (outDir: string) => {
