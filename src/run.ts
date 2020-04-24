@@ -8,10 +8,10 @@ export const fs = {
 
 const TIMEOUT = 5000;
 const TIME_WARN = 500;
-const OUT_DIR = `../reports`;
+const SETTINGS = { outDir: `../reports` };
 
 const appendToFile = async (text: string) => {
-    const path = `${OUT_DIR}/results_${new Date().toISOString().substr(0, 10)}.txt`;
+    const path = `${SETTINGS.outDir}/results_${new Date().toISOString().substr(0, 10)}.txt`;
     fs.appendFile(path, text);
 };
 
@@ -66,10 +66,12 @@ const loop = async () => {
     await Promise.all(calls);
 };
 
-const run = async () => {
+export const run = async (outDir: string) => {
+    SETTINGS.outDir = path.resolve(outDir);
+
     setInterval(() => {
         try { loop(); } catch{ }
     }, TIMEOUT);
 };
 
-run();
+// run();
